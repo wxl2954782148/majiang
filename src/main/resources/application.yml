@@ -1,2 +1,10 @@
 server:
   port: 80
+github:
+    client:
+      id: Iv1.bfe9169e2b6e5262
+      secret: edacd0a19dcdccbcdeeb5e467c9f143c26bad756
+      redirect_uri: http://localhost/callback
+         
+
+    

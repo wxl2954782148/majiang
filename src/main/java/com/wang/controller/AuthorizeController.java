@@ -1,17 +1,14 @@
 package com.wang.controller;
-
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -21,7 +18,15 @@ import com.wang.dto.GithubUser;
 import com.wang.model.UserInfo;
 import com.wang.provider.GithubProvider;
 import com.wang.repository.UserInfoRepository;
-
+import com.wang.service.UserInfoService;
+/**
+ * 用户授权
+ * @author Administrator
+ *reids:
+ *		key:openid value:uuid
+ *cookie 
+ *		key:user_token value:openid
+ */
 @Controller
 public class AuthorizeController {
 	@Autowired
@@ -30,14 +35,15 @@ public class AuthorizeController {
 	@Autowired
 	private GithubCilent githubCilent;
 	@Autowired
-	private UserInfoRepository userInfoRepository;
+	private UserInfoService userInfoService;
 	@Autowired
 	private StringRedisTemplate redis;
 
 	@GetMapping("/callback")
 	public String callback(@RequestParam(name="code")String code,
 							@RequestParam(name="state")String state,
-							HttpServletRequest httpServletRequest
+							HttpServletRequest httpServletRequest,
+							HttpServletResponse httpServletResponse
 							) {
 		AccessTokenDto dto = new AccessTokenDto();
 		dto.setClient_id(githubCilent.getId());
@@ -45,23 +51,29 @@ public class AuthorizeController {
 		dto.setCode(code);
 		dto.setRedirect_uri(githubCilent.getRedirect_uri());
 		dto.setState(state);
+		//获取token
 		String accessToken = githubProvider.getAccessToken(dto);
+		//获取user信息
 		GithubUser user = githubProvider.getUser(accessToken);
+		
 		if(user != null) {
-			UserInfo userInfo = userInfoRepository.findByOpenId(user.getId().toString());
+			//查询数据库user是否存在
+			UserInfo userInfo = userInfoService.findByOpenId(user.getId().toString());
 			if(userInfo==null) {
-				UserInfo entity = new UserInfo();
-				entity.setOpenId(user.getId().toString());
-				entity.setUserBio(user.getBio());
-				entity.setUserName(user.getName());
-				entity.setToken(UUID.randomUUID().toString());
-				userInfoRepository.save(entity);
+				//user不存在，保存到数据库
+				UserInfo info = new UserInfo();
+				info.setOpenId(user.getId().toString());
+				info.setUserBio(user.getBio());
+				info.setUserName(user.getName());
+				info.setUserImg(user.getAvatar_url());
+				userInfoService.saveUserInfo(info);
 			}
-			String sessionKey  = "sessionKey"+user.getId().toString();
-			String session = user.getId().toString();
-			redis.opsForValue().set(sessionKey,session,1,TimeUnit.MINUTES);
-			String user_token = redis.opsForValue().get(sessionKey);
-			httpServletRequest.getSession().setAttribute("user", user);
+			//保存session到redis
+			redis.opsForValue().set(userInfo.getOpenId(),UUID.randomUUID().toString(),1,TimeUnit.DAYS);
+			
+			//把token返回
+			httpServletResponse.addCookie(new Cookie("user_token",userInfo.getOpenId()));
+			
 			return "redirect:/";
 		}
 		

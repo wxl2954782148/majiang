@@ -15,7 +15,7 @@
 	<nav class="navbar navbar-default">
 		<div class="container-fluid">
 			<div class="navbar-header">
-				<a class="navbar-brand" href="#">es社区</a>
+				<a class="navbar-brand" href="/index">es社区</a>
 			</div>
 
 			<!-- Collect the nav links, forms, and other content for toggling -->
@@ -43,12 +43,13 @@
 
 				<ul class="nav navbar-nav navbar-right">
 
-					<li class="dropdown" th:if="${session.user != null}">
-					<a href="#" class="dropdown-toggle" data-toggle="dropdown"
-						role="button" aria-haspopup="true" aria-expanded="false" th:text="${session.user.getName()}">我<span
-							class="caret"></span></a>
+					<li class="dropdown" th:if="${session.user != null}"><a
+						href="#" class="dropdown-toggle" data-toggle="dropdown"
+						role="button" aria-haspopup="true" aria-expanded="false"
+						th:text="${session.user.getUserName()}">我<span class="caret"></span>
+					</a>
 						<ul class="dropdown-menu">
-							<li><a href="#">Action</a></li>
+							<li><a href="/publish">发布文章</a></li>
 							<li><a href="#">Another action</a></li>
 							<li><a href="#">Something else here</a></li>
 						</ul></li>
@@ -60,8 +61,64 @@
 		</div>
 		<!-- /.container-fluid -->
 	</nav>
+	<!-- 文章预览 -->
+	<div class="container">
+		<div class="row clearfix">
+			<div class="col-md-9 column">
+				<ul class="nav nav-tabs">
+					<li role="presentation" class="active"><a href="#">最新</a></li>
+					<li role="presentation"><a href="#">推荐</a></li>
+					<li role="presentation"><a href="#">热门</a></li>
+					<li role="presentation"><a href="#">消灭零回复</a></li>
+				</ul>
+				<div class="media" th:each="article : ${articlesPage.content}">
+					<div th:each="userInfo : ${article.userInfo}">
+						<div class="media-left media-middle">
+							<a href="#"> <img class="media-object" width="48px"
+								height="48px"
+								src="https://avatars0.githubusercontent.com/u/49518387?">
+							</a>
+						</div>
+						<div class="media-body">
+							<h4 th:text="${article.articleTitle}" class="media-heading">标题</h4>
+							<article th:text="${article.articleDescription}">内容</article>
+							<div th:each="tags : ${article.tags}">
+								<span style="float: left" th:text="${tags.tagName}" class="label label-info">标签</span>
+							</div>
+							<span th:text="'发布人:'+(${userInfo.userName})">发布人</span> <span
+								th:text="'评论人数:'+(${article.commentCount})">评论人数</span> <span
+								th:text="'观看人数:'+(${article.likeCount})">观看人数</span> <span
+								th:text="'点赞人数:'+(${article.likeCount})">点赞人数</span> <span
+								th:text="'创建时间:'+(${article.createTime})">创建时间</span>
+						</div>
+					</div>
+				</div>
 
+				<!-- 分页 -->
+				<nav aria-label="Page navigation">
+  <ul class="pagination">
+    <li>
+      <a href="#" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+    <li><a href="#">1</a></li>
+    <li><a href="#">2</a></li>
+    <li><a href="#">3</a></li>
+    <li><a href="#">4</a></li>
+    <li><a href="#">5</a></li>
+    <li>
+      <a href="#" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+			</div>
+			<div class="col-md-3 column"></div>
+		</div>
 
+	</div>
 
 	<!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
 	<script

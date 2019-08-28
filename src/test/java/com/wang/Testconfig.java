@@ -17,5 +17,12 @@ public class Testconfig {
 	public void test() {
 		System.out.println(githubCilent.getId());
 	}
-	
+	@Test
+	public void test2() {
+		String tag = "aaa";
+		String[] tags = tag.split(";");
+		for(int i=0;i<tags.length;i++) {
+			System.out.println(tags[i]);
+		}
+	}
 }

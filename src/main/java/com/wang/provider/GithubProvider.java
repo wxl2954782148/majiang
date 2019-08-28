@@ -18,7 +18,11 @@ import okhttp3.Response;
 
 @Component
 public class GithubProvider {
-	
+	/**
+	 * 获取token
+	 * @param accessTokenDto
+	 * @return
+	 */
 	public String getAccessToken(AccessTokenDto accessTokenDto) {
 		MediaType mediaType = MediaType.get("application/json; charset=utf-8");
 		OkHttpClient client = new OkHttpClient();
@@ -38,7 +42,11 @@ public class GithubProvider {
 		return null;
 		
 	}
-	
+	/**
+	 * 获取用户信息
+	 * @param accessToken
+	 * @return
+	 */
 	public GithubUser getUser(String accessToken) {
 		OkHttpClient client = new OkHttpClient();
 		Request request = new Request.Builder()

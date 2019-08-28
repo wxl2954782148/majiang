@@ -1,0 +1,27 @@
+@EnableGlobalMethodSecurity ：
+Spring Security默认是禁用注解的，要想开启注解，需要在继承WebSecurityConfigurerAdapter的类上加@EnableGlobalMethodSecurity注解，
+并在该类中将AuthenticationManager定义为Bean。
+
+（1）prePostEnabled :决定Spring Security的前注解是否可用 [@PreAuthorize,@PostAuthorize,..]
+
+（2）secureEnabled : 决定是否Spring Security的保障注解 [@Secured] 是否可用。
+
+（3）jsr250Enabled ：决定 JSR-250 annotations 注解[@RolesAllowed..] 是否可用。
+一、JSR-250注解
+@DenyAll 拒绝所有访问
+@RolesAllowed({"USER", "ADMIN"})  该方法只要具有"USER", "ADMIN"任意一种权限就可以访问。这里可以省 略前缀ROLE_，实际的权限可能是ROLE_ADMIN
+@PermitAll 允许所有访问
+二、prePostEnabled注解
+@PreAuthorize：在方法执行之前执行，而且这里可以调用方法的参数，也可以得到参数值，这是利用JAVA8的参数名反射特性，如果没用JAVA8，那么也可以利用Spring Security的@P标注参数，或者Spring Data的@Param标注参数。
+@PreAuthorize("#userId == authentication.principal.userId or hasAuthority(‘ADMIN’)")
+void changePassword(@P("userId") long userId ){  }
+这里表示在changePassword方法执行之前，判断方法参数userId的值是否等于principal中保存的当前用户的userId，或者当前用户是否具有ROLE_ADMIN权限，两种符合其一，就可以访问该方法。
+@PostAuthorize：在方法执行之后执行，而且这里可以调用方法的返回值，如果EL为false，那么该方法也已经执行完了，可能会回滚。EL变量returnObject表示返回的对象。
+@PostAuthorize
+User getUser("returnObject.userId == authentication.principal.userId or hasPermission(returnObject, 'ADMIN')");
+@PreFilter：在方法执行之前执行，而且这里可以调用方法的参数，然后对参数值进行过滤或处理或修改，EL变量filterObject表示参数，如有多个参数，使用filterTarget注解参数。只有方法参数是集合或数组才行。（很少会用到，与分页技术不兼容）
+
+三、securedEnabled 注解
+@Secured认证是否有权限访问，例如
+@Secured("IS_AUTHENTICATED_ANONYMOUSLY")public Account readAccount(Long id);
+@Secured("ROLE_TELLER")
